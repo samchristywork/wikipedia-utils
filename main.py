@@ -9,6 +9,7 @@ def usage():
     print("  summary <page>  Get a summary of a Wikipedia page")
     print("  random          Get a random Wikipedia page")
     print("  page <page>     Get the full text of a Wikipedia page")
+    print("  links <page>    Get links from a Wikipedia page")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -54,6 +55,22 @@ if __name__ == "__main__":
         try:
             page = wikipedia.page(page_name)
             print(page.content)
+        except wikipedia.exceptions.DisambiguationError as e:
+            print(f"Disambiguation error: {e}")
+        except wikipedia.exceptions.PageError as e:
+            print(f"Page error: {e}")
+
+    elif command == "links":
+        if len(sys.argv) < 3:
+            print("Error: Missing page name for links command")
+            usage()
+            sys.exit(1)
+        page_name = " ".join(sys.argv[2:])
+        try:
+            page = wikipedia.page(page_name)
+            links = page.links
+            for link in links:
+                print(link)
         except wikipedia.exceptions.DisambiguationError as e:
             print(f"Disambiguation error: {e}")
         except wikipedia.exceptions.PageError as e:
