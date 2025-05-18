@@ -8,6 +8,7 @@ def usage():
     print("  search <query>  Search Wikipedia for a query")
     print("  summary <page>  Get a summary of a Wikipedia page")
     print("  random          Get a random Wikipedia page")
+    print("  page <page>     Get the full text of a Wikipedia page")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -23,7 +24,6 @@ if __name__ == "__main__":
             sys.exit(1)
         query = " ".join(sys.argv[2:])
         results = wikipedia.search(query)
-        print("Search results:")
         for result in results:
             print(result)
 
@@ -44,6 +44,20 @@ if __name__ == "__main__":
     elif command == "random":
         page = wikipedia.random()
         print(page)
+
+    elif command == "page":
+        if len(sys.argv) < 3:
+            print("Error: Missing page name for page command")
+            usage()
+            sys.exit(1)
+        page_name = " ".join(sys.argv[2:])
+        try:
+            page = wikipedia.page(page_name)
+            print(page.content)
+        except wikipedia.exceptions.DisambiguationError as e:
+            print(f"Disambiguation error: {e}")
+        except wikipedia.exceptions.PageError as e:
+            print(f"Page error: {e}")
 
     else:
         print(f"Unknown command: {command}")
