@@ -5,6 +5,7 @@ def usage():
     print("Usage: python main.py <command>")
     print()
     print("Commands:")
+    print("  summary <page>  Get a summary of a Wikipedia page")
     print("  random          Get a random Wikipedia page")
 
 if __name__ == "__main__":
@@ -14,7 +15,21 @@ if __name__ == "__main__":
 
     command = sys.argv[1]
 
-    if command == "random":
+    if command == "summary":
+        if len(sys.argv) < 3:
+            print("Error: Missing page name for summary command")
+            usage()
+            sys.exit(1)
+        page_name = " ".join(sys.argv[2:])
+        try:
+            summary = wikipedia.summary(page_name)
+            print(summary)
+        except wikipedia.exceptions.DisambiguationError as e:
+            print(f"Disambiguation error: {e}")
+        except wikipedia.exceptions.PageError as e:
+            print(f"Page error: {e}")
+
+    elif command == "random":
         page = wikipedia.random()
         print(page)
 
