@@ -5,6 +5,7 @@ def usage():
     print("Usage: python main.py <command>")
     print()
     print("Commands:")
+    print("  search <query>  Search Wikipedia for a query")
     print("  summary <page>  Get a summary of a Wikipedia page")
     print("  random          Get a random Wikipedia page")
 
@@ -15,7 +16,18 @@ if __name__ == "__main__":
 
     command = sys.argv[1]
 
-    if command == "summary":
+    if command == "search":
+        if len(sys.argv) < 3:
+            print("Error: Missing query for search command")
+            usage()
+            sys.exit(1)
+        query = " ".join(sys.argv[2:])
+        results = wikipedia.search(query)
+        print("Search results:")
+        for result in results:
+            print(result)
+
+    elif command == "summary":
         if len(sys.argv) < 3:
             print("Error: Missing page name for summary command")
             usage()
