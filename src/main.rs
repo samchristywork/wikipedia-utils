@@ -44,12 +44,45 @@ fn wiki_search(search_term: &str) -> Vec<Page> {
         .collect()
 }
 
+fn wiki_random(n: u64) -> Vec<String> {
+    let mut url = Url::parse(API_URL).expect("Failed to parse API URL");
+    url.query_pairs_mut()
+        .append_pair("action", "query")
+        .append_pair("list", "random")
+        .append_pair("rnlimit", &n.to_string())
+        .append_pair("rnnamespace", "0")
+        .append_pair("format", "json");
+
+    from_str::<Value>(
+        &get(url.as_str())
+            .expect("Failed to get URL")
+            .text()
+            .expect("Failed to get text from response"),
+    )
+    .expect("Failed to parse JSON")["query"]["random"]
+        .as_array()
+        .expect("Expected random to be an array")
+        .iter()
+        .map(|page| {
+            format!(
+                "{} ({})",
+                page["title"]
+                    .as_str()
+                    .expect("Expected title to be a string")
+                    .to_string(),
+                page["id"].as_u64().expect("Expected id to be a u64")
+            )
+        })
+        .collect()
+}
+
 fn usage() {
     println!(
         "Usage: wiki <command> [args]
 
 Commands:
-  search <term>  Search Wikipedia for a term"
+  search <term>  Search Wikipedia for a term
+  random [n]     Get n random Wikipedia pages (default: 1)"
     );
 }
 
@@ -64,6 +97,16 @@ fn main() {
             let search_term = std::env::args().nth(2).expect("No search term provided");
             wiki_search(&search_term).iter().for_each(|page| {
                 println!("{} ({})", page.title, page.pageid);
+            });
+        }
+        "random" => {
+            let n: u64 = std::env::args()
+                .nth(2)
+                .unwrap_or_else(|| "1".to_string())
+                .parse()
+                .expect("Invalid number of random pages");
+            wiki_random(n).iter().for_each(|page| {
+                println!("{}", page);
             });
         }
         _ => usage(),
