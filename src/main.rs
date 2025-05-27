@@ -66,6 +66,34 @@ fn wiki_page(pageid: u64) -> String {
         .to_string()
 }
 
+fn wiki_links(pageid: u64) -> Vec<String> {
+    let mut url = Url::parse(API_URL).expect("Failed to parse API URL");
+    url.query_pairs_mut()
+        .append_pair("action", "query")
+        .append_pair("prop", "links")
+        .append_pair("pllimit", "max")
+        .append_pair("pageids", &pageid.to_string())
+        .append_pair("format", "json");
+
+    from_str::<Value>(
+        &get(url.as_str())
+            .expect("Failed to get URL")
+            .text()
+            .expect("Failed to get text from response"),
+    )
+    .expect("Failed to parse JSON")["query"]["pages"][pageid.to_string()]["links"]
+        .as_array()
+        .expect("Expected links to be an array")
+        .iter()
+        .map(|link| {
+            link["title"]
+                .as_str()
+                .expect("Expected link title to be a string")
+                .to_string()
+        })
+        .collect()
+}
+
 fn wiki_random(n: u64) -> Vec<String> {
     let mut url = Url::parse(API_URL).expect("Failed to parse API URL");
     url.query_pairs_mut()
@@ -105,6 +133,7 @@ fn usage() {
 Commands:
   search <term>  Search Wikipedia for a term
   page   <id>    Get the content of a Wikipedia page by ID
+  links  <id>    Get the links of a Wikipedia page by ID
   random [n]     Get n random Wikipedia pages (default: 1)"
     );
 }
@@ -129,6 +158,16 @@ fn main() {
                 .parse()
                 .expect("Invalid page ID");
             println!("{}", wiki_page(pageid));
+        }
+        "links" => {
+            let pageid: u64 = std::env::args()
+                .nth(2)
+                .expect("No page ID provided")
+                .parse()
+                .expect("Invalid page ID");
+            wiki_links(pageid).iter().for_each(|link| {
+                println!("{}", link);
+            });
         }
         "random" => {
             let n: u64 = std::env::args()
