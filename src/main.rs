@@ -31,7 +31,7 @@ fn wiki_search(search_term: &str) -> Vec<Page> {
     .expect("Failed to parse JSON")["query"]["search"]
         .as_array()
         .expect("Expected search results to be an array")
-        .into_iter()
+        .iter()
         .map(|result| Page {
             title: result["title"]
                 .as_str()
@@ -118,8 +118,7 @@ fn wiki_random(n: u64) -> Vec<String> {
                 "{} ({})",
                 page["title"]
                     .as_str()
-                    .expect("Expected title to be a string")
-                    .to_string(),
+                    .expect("Expected title to be a string"),
                 page["id"].as_u64().expect("Expected id to be a u64")
             )
         })
@@ -147,9 +146,9 @@ fn main() {
     match command.as_str() {
         "search" => {
             let search_term = std::env::args().nth(2).expect("No search term provided");
-            wiki_search(&search_term).iter().for_each(|page| {
+            for page in &wiki_search(&search_term) {
                 println!("{} ({})", page.title, page.pageid);
-            });
+            }
         }
         "page" => {
             let pageid: u64 = std::env::args()
@@ -165,9 +164,9 @@ fn main() {
                 .expect("No page ID provided")
                 .parse()
                 .expect("Invalid page ID");
-            wiki_links(pageid).iter().for_each(|link| {
-                println!("{}", link);
-            });
+            for link in &wiki_links(pageid) {
+                println!("{link}");
+            }
         }
         "random" => {
             let n: u64 = std::env::args()
@@ -175,9 +174,9 @@ fn main() {
                 .unwrap_or_else(|| "1".to_string())
                 .parse()
                 .expect("Invalid number of random pages");
-            wiki_random(n).iter().for_each(|page| {
-                println!("{}", page);
-            });
+            for page in &wiki_random(n) {
+                println!("{page}");
+            }
         }
         _ => usage(),
     }
